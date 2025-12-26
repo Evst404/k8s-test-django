@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: main-nginx
+  namespace: edu-aleksandr-evstigneev
+  labels:
+    app: main-nginx
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.16.1
+    ports:
+    - containerPort: 80
+    volumeMounts:
+    - name: nginx-config
+      mountPath: /etc/nginx/nginx.conf
+      subPath: nginx.conf
+      readOnly: true
+  volumes:
+  - name: nginx-config
+    configMap:
+      name: main-nginx-config
