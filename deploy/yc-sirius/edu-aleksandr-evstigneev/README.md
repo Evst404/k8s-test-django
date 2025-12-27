@@ -35,6 +35,33 @@ stringData:
 kubectl apply -f psql-client.yaml -n edu-aleksandr-evstigneev
 ```
 
+## Как собрать и опубликовать Docker-образ
+
+1) Соберите образ из `backend_main_django`:
+
+```sh
+cd backend_main_django
+COMMIT_SHA=$(git rev-parse --short HEAD)
+docker build -t DOCKERHUB_USER/k8s-test-django:${COMMIT_SHA} .
+```
+
+2) Авторизуйтесь и отправьте образ в Docker Hub:
+
+```sh
+docker login
+docker push DOCKERHUB_USER/k8s-test-django:${COMMIT_SHA}
+```
+
+3) Для старого коммита используйте его хэш как тег:
+
+```sh
+git checkout <old_commit>
+COMMIT_SHA=$(git rev-parse --short HEAD)
+docker build -t DOCKERHUB_USER/k8s-test-django:${COMMIT_SHA} .
+docker push DOCKERHUB_USER/k8s-test-django:${COMMIT_SHA}
+git checkout main
+```
+
 ## Применить Service
 
 ```sh
