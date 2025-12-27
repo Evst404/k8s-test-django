@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: psql-client
+  namespace: edu-aleksandr-evstigneev
+spec:
+  containers:
+  - name: ubuntu
+    image: ubuntu:22.04
+    command: ["sleep", "infinity"]
+    volumeMounts:
+    - name: pg-root-crt
+      mountPath: /root/.postgresql
+      readOnly: true
+  volumes:
+  - name: pg-root-crt
+    secret:
+      secretName: pg-root-crt
+      defaultMode: 0600
