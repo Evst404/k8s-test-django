@@ -35,6 +35,14 @@ stringData:
 kubectl apply -f psql-client.yaml -n edu-aleksandr-evstigneev
 ```
 
+Создайте секрет для Django (подставьте свой SECRET_KEY и DATABASE_URL):
+
+```sh
+kubectl apply -f django-secret.yaml -n edu-aleksandr-evstigneev
+```
+
+Подсказка: DATABASE_URL можно взять из секрета `postgres` (dsn или собрать из host/port/user/password).
+
 ## Как собрать и опубликовать Docker-образ
 
 1) Соберите образ из `backend_main_django`:
@@ -72,4 +80,43 @@ kubectl apply -f service.yaml -n edu-aleksandr-evstigneev
 
 ```sh
 kubectl apply -f pod.yaml -n edu-aleksandr-evstigneev
+```
+
+## Как задеплоить на prod
+
+1) Обновите Docker-образ и пушьте его в Docker Hub:
+
+```sh
+cd backend_main_django
+COMMIT_SHA=$(git rev-parse --short HEAD)
+docker build -t DOCKERHUB_USER/evst404-k8s-test-django:${COMMIT_SHA} .
+docker push DOCKERHUB_USER/evst404-k8s-test-django:${COMMIT_SHA}
+```
+
+2) Обновите тег в `django-deployment.yaml` и примените манифесты:
+
+```sh
+kubectl apply -f django-secret.yaml -n edu-aleksandr-evstigneev
+kubectl apply -f django-service.yaml -n edu-aleksandr-evstigneev
+kubectl apply -f django-deployment.yaml -n edu-aleksandr-evstigneev
+```
+
+3) Проверьте rollout и логи:
+
+```sh
+kubectl rollout status deployment/django-web -n edu-aleksandr-evstigneev
+kubectl logs deployment/django-web -n edu-aleksandr-evstigneev
+```
+
+4) Запустите management-команды:
+
+```sh
+kubectl exec -it deployment/django-web -n edu-aleksandr-evstigneev -- python manage.py migrate
+kubectl exec -it deployment/django-web -n edu-aleksandr-evstigneev -- python manage.py createsuperuser
+```
+
+5) Проверка доступа через port-forward:
+
+```sh
+kubectl port-forward service/django 8080:80 -n edu-aleksandr-evstigneev
 ```

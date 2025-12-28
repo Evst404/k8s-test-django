@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-web
+  namespace: edu-aleksandr-evstigneev
+  labels:
+    app: django
+    tier: web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: django
+      tier: web
+  template:
+    metadata:
+      labels:
+        app: django
+        tier: web
+    spec:
+      containers:
+      - name: django
+        image: aleksevst/evst404-k8s-test-django:a951aee
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: django-secret
+              key: SECRET_KEY
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: django-secret
+              key: DATABASE_URL
+        - name: DEBUG
+          valueFrom:
+            secretKeyRef:
+              name: django-secret
+              key: DEBUG
+        - name: ALLOWED_HOSTS
+          valueFrom:
+            secretKeyRef:
+              name: django-secret
+              key: ALLOWED_HOSTS
+        volumeMounts:
+        - name: pg-root-crt
+          mountPath: /root/.postgresql
+          readOnly: true
+      volumes:
+      - name: pg-root-crt
+        secret:
+          secretName: pg-root-crt
+          defaultMode: 384
