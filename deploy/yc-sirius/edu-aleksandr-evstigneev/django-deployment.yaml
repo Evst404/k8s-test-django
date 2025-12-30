@@ -18,9 +18,11 @@ spec:
         app: django
         tier: web
     spec:
+      imagePullSecrets:
+      - name: regcred
       containers:
       - name: django
-        image: aleksevst/evst404-k8s-test-django:a951aee
+        image: aleksevst/evst404-k8s-test-django:dadd213
         imagePullPolicy: Always
         ports:
         - containerPort: 80

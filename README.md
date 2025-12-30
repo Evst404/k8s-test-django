@@ -76,3 +76,28 @@ $ docker compose build web
 `ALLOWED_HOSTS` -- настройка Django со списком разрешённых адресов. Если запрос прилетит на другой адрес, то сайт ответит ошибкой 400. Можно перечислить несколько адресов через запятую, например `127.0.0.1,192.168.0.1,site.test`. [Документация Django](https://docs.djangoproject.com/en/3.2/ref/settings/#allowed-hosts).
 
 `DATABASE_URL` -- адрес для подключения к базе данных PostgreSQL. Другие СУБД сайт не поддерживает. [Формат записи](https://github.com/jacobian/dj-database-url#url-schema).
+
+## Как деплоить на prod (Kubernetes)
+
+Кластеры в окружении используют `amd64`, поэтому собирайте образ с нужной платформой:
+
+```sh
+cd backend_main_django
+COMMIT_SHA=$(git rev-parse --short HEAD)
+docker buildx build --platform linux/amd64 -t DOCKERHUB_USER/evst404-k8s-test-django:${COMMIT_SHA} --push .
+```
+
+Далее обновите тег в `deploy/yc-sirius/edu-aleksandr-evstigneev/django-deployment.yaml` и примените манифесты:
+
+```sh
+kubectl apply -f deploy/yc-sirius/edu-aleksandr-evstigneev/django-secret.yaml -n edu-aleksandr-evstigneev
+kubectl apply -f deploy/yc-sirius/edu-aleksandr-evstigneev/django-service.yaml -n edu-aleksandr-evstigneev
+kubectl apply -f deploy/yc-sirius/edu-aleksandr-evstigneev/django-deployment.yaml -n edu-aleksandr-evstigneev
+```
+
+После деплоя:
+
+```sh
+kubectl exec -it deployment/django-web -n edu-aleksandr-evstigneev -- python manage.py migrate
+kubectl exec -it deployment/django-web -n edu-aleksandr-evstigneev -- python manage.py createsuperuser
+```

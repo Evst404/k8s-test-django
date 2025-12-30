@@ -50,14 +50,13 @@ kubectl apply -f django-secret.yaml -n edu-aleksandr-evstigneev
 ```sh
 cd backend_main_django
 COMMIT_SHA=$(git rev-parse --short HEAD)
-docker build -t DOCKERHUB_USER/k8s-test-django:${COMMIT_SHA} .
+docker buildx build --platform linux/amd64 -t DOCKERHUB_USER/k8s-test-django:${COMMIT_SHA} --push .
 ```
 
-2) Авторизуйтесь и отправьте образ в Docker Hub:
+2) Если хотите multi-arch образ, добавьте вторую платформу:
 
 ```sh
-docker login
-docker push DOCKERHUB_USER/k8s-test-django:${COMMIT_SHA}
+docker buildx build --platform linux/amd64,linux/arm64 -t DOCKERHUB_USER/k8s-test-django:${COMMIT_SHA} --push .
 ```
 
 3) Для старого коммита используйте его хэш как тег:
@@ -65,8 +64,7 @@ docker push DOCKERHUB_USER/k8s-test-django:${COMMIT_SHA}
 ```sh
 git checkout <old_commit>
 COMMIT_SHA=$(git rev-parse --short HEAD)
-docker build -t DOCKERHUB_USER/k8s-test-django:${COMMIT_SHA} .
-docker push DOCKERHUB_USER/k8s-test-django:${COMMIT_SHA}
+docker buildx build --platform linux/amd64 -t DOCKERHUB_USER/k8s-test-django:${COMMIT_SHA} --push .
 git checkout main
 ```
 
